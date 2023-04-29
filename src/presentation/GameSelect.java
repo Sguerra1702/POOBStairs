@@ -31,38 +31,33 @@ public class GameSelect extends JPanel {
     private int turnoJ1, turnoJ2;
 
 
-    public GameSelect(Color color1, String name1, int turnoJ1){
-        prepareElements1P(color1, name1, turnoJ1);
+    public GameSelect(){
+        prepareElements1P();
 
     }
-
-    public GameSelect(Color color1, Color color2, String name1, String name2, int turnoJ1, int turnoJ2){
-        prepareElements2P(color1, color2, name1, name2, turnoJ1, turnoJ2);
-    }
-
-    public void prepareElements1P(Color color1, String name1, int turnoJ1){
+    public void prepareElements1P(){
         setBackground(Color.black);
         setOpaque(false);
         prepareElementsGameSelect();
-        prepareActionsGameSelect1P(color1, name1, turnoJ1);
+        prepareActionsGameSelect1P();
         image = loadImage("https://www.gifcen.com/wp-content/uploads/2022/01/wallpaper-gif-9.gif");
     }
 
-    public void prepareElements2P(Color color1, Color color2, String name1, String name2, int turnoJ1, int turnoJ2){
+    public void prepareElements2P(){
         setBackground(Color.black);
         setOpaque(false);
         prepareElementsGameSelect();
-        prepareActionsGameSelect2P(color1, color2, name1, name2, turnoJ1, turnoJ2);
+        prepareActionsGameSelect2P();
         image = loadImage("https://www.gifcen.com/wp-content/uploads/2022/01/wallpaper-gif-9.gif");
     }
 
-    public void prepareActionsGameSelect1P(Color color1, String name1, int turnoJ1) {
-        normal.addActionListener(e -> prepareElementsBoardNormal1P(color1, name1, turnoJ1));
+    public void prepareActionsGameSelect1P() {
+        normal.addActionListener(e -> prepareElementsBoardNormal1P());
         exit.addActionListener(e -> confirmateClose());
     }
 
-    public void prepareActionsGameSelect2P(Color color1, Color color2, String name1, String name2, int turnoJ1, int turnoJ2) {
-        normal.addActionListener(e -> prepareElementsBoardNormal2P(color1, color2, name1, name2, turnoJ1, turnoJ2));
+    public void prepareActionsGameSelect2P() {
+        normal.addActionListener(e -> prepareElementsBoardNormal2P());
         exit.addActionListener(e -> confirmateClose());
     }
 
@@ -84,12 +79,12 @@ public class GameSelect extends JPanel {
 
     }
 
-    public void prepareElementsBoardNormal1P(Color color1, String name1, int turnoJ1){
-        StairsGUI.getGUI().prepareElementsBoardNormal1P(color1, name1, turnoJ1);
+    public void prepareElementsBoardNormal1P(){
+        StairsGUI.getGUI().prepareElementsBoardNormal1P();
     }
 
-    public void prepareElementsBoardNormal2P(Color color1, Color color2, String name1, String name2, int turnoJ1, int turnoJ2){
-        StairsGUI.getGUI().prepareElementsBoardNormal2P(color1, color2, name1, name2, turnoJ1, turnoJ2);
+    public void prepareElementsBoardNormal2P(){
+        StairsGUI.getGUI().prepareElementsBoardNormal2P();
     }
 
     private void confirmateClose() {

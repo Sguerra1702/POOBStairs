@@ -2,11 +2,9 @@ package domain;
 
 public class StairsException extends Exception{
     public static final String NO_ELIGIO_NADA = "Usted no ha elegido ninguna opción, intente de nuevo";
-    public static final String J1_NOMBRE_INCORRECTO = "El nombre para el jugador 1 es invalido, no puede ser vacío";
-    public static final String J2_NOMBRE_INCORRECTO = "El nombre para el jugador 2 es invalido, no puede ser vacío";
-    public static final String NO_MISMO_COLOR = "No pueden elegir el mismo color";
-    public static final String NO_MISMO_COLOR_Y_NOMBRE = "No pueden tener el mismo nombre y color";
-    public static final String NO_MISMO_NOMBRE = "No pueden tener el mismo nombre";
+    public static final String NULL_INFORMATION = "Dejaste uno o varios campos sin escoger, por favor completa la información";
+    public static final String NO_PLAYERS = "Numero inválido de jugadores, intenta de nuevo";
+    public static final String NO_MISMO_NOMBRE_O_COLOR = "Ya existe un jugador con el mismo nombre o color, verifica la información y utiliza uno distinto";
     public StairsException(String message){
         super(message);
     }

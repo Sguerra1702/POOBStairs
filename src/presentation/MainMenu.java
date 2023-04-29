@@ -15,7 +15,7 @@ public class MainMenu extends JPanel {
 
     private JPanel titlePanel;
 
-    private JButton solo, vsButton, exit;
+    private JButton newGame, loadGame, exit;
 
     Image image;
     private JLabel textfield;
@@ -39,31 +39,37 @@ public class MainMenu extends JPanel {
         JPanel menuBotones = new JPanel();
         menuBotones.setBackground(Color.white);
         menuBotones.setLayout(orden);
-        solo = new JButton("Un jugador");
+        newGame = new JButton("Nueva Partida");
         menuBotones.add(textfield);
-        menuBotones.add(solo);
-        vsButton = new JButton("Dos Jugadores");
+        menuBotones.add(newGame);
+        loadGame = new JButton("Cargar Partida");
         exit = new JButton("Salir");
-        menuBotones.add(vsButton);
+        menuBotones.add(loadGame);
         menuBotones.add(exit);
         menuBotones.setOpaque(false);
         this.add(menuBotones);
         setVisible(true);
-        image = loadImage("https://miro.medium.com/max/720/1*kmi3_mISigRQnwxsR4WQmw.gif");
+        image = loadImage("");
     }
 
     public void prepareActionsMenu() {
-        solo.addActionListener(e -> prepareElementsPlayerConfig1P());
-        vsButton.addActionListener(e -> prepareElementsPlayerConfig2P());
+        newGame.addActionListener(e -> {
+            try {
+                prepareElementsPlayerConfig1P();
+            } catch (StairsException ex) {
+                JOptionPane.showMessageDialog(null, ex.getMessage(), "Oops", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+        loadGame.addActionListener(e -> loadGame());
         exit.addActionListener(e -> confirmateClose());
     }
 
-    public void prepareElementsPlayerConfig1P(){
+    public void prepareElementsPlayerConfig1P()throws StairsException{
         StairsGUI.getGUI().prepareElementsPlayerConfig1P();
     }
 
-    public void prepareElementsPlayerConfig2P(){
-        StairsGUI.getGUI().prepareElementsPlayerConfig2P();
+    public void loadGame(){
+        JOptionPane.showMessageDialog(null, "Próximamente", "Funcion en Construción", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void confirmateClose() {

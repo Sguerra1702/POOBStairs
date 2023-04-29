@@ -8,7 +8,6 @@ import java.awt.event.WindowEvent;
 public class StairsGUI extends JFrame {
 
     private static StairsGUI stairsInterface;
-    private JPanel mainPanel, gameModeSelectionPanel, gamePanel, midPanel;
 
     private JMenu archivo, settings;
 
@@ -25,8 +24,7 @@ public class StairsGUI extends JFrame {
 
     private GameSelect menuGameSelect;
 
-    private Color color;
-    private J12 j12Maquina, j12Jugadores;
+    private J12 j12;
     private int nJugadores;
     public StairsGUI(){
         prepareElements();
@@ -45,20 +43,8 @@ public class StairsGUI extends JFrame {
         setSize(screenSize.width, screenSize.height);
         setLocationRelativeTo(null);
         menuPrincipal = new MainMenu();
-        menuPrincipal.setOpaque(false);
-        try {
-            j12Maquina = new J12(0);
-        }
-        catch(StairsException e){
-            e.printStackTrace();
-        }
-        try {
-            j12Jugadores = new J12();
-        }
-        catch(StairsException e){
-            e.printStackTrace();
-        }
         prepareElementsMenu();
+        menuPrincipal.setOpaque(false);
     }
 
     public void prepareActions(){
@@ -96,46 +82,55 @@ public class StairsGUI extends JFrame {
 
 
     }
-    public void prepareElementsPlayerConfig1P(){
-        this.remove(menuPrincipal);
-        add(j12Maquina);
-        validate();
-        repaint();
+    public void prepareElementsPlayerConfig1P()throws StairsException{
+        nJugadores = Integer.parseInt(JOptionPane.showInputDialog(null, "Digita el numero de jugadores"));
+        if(nJugadores <= 0){
+            throw new StairsException(StairsException.NO_PLAYERS);
+        }
+        else {
+            this.remove(menuPrincipal);
+            add(j12 = new J12(nJugadores));
+            validate();
+            repaint();
+        }
     }
 
     public void prepareElementsPlayerConfig2P(){
         this.remove(menuPrincipal);
-        add(j12Jugadores);
+        add(j12);
         validate();
         repaint();
     }
 
-    public void prepareElementsGameSelect1P(Color color1, String name1, int turnoJ1){
-        menuGameSelect = new GameSelect(color, name1, turnoJ1);
-        this.remove(j12Maquina);
+    public void prepareElementsGameSelect(){
+        menuGameSelect = new GameSelect();
+        this.remove(j12);
         add(menuGameSelect);
         validate();
         repaint();
     }
 
-    public void prepareElementsGameSelect2P(Color color1, Color color2, String name1, String name2, int turnoJ1, int turnoJ2){
-        menuGameSelect = new GameSelect(color1, color2, name1, name2, turnoJ1, turnoJ2);
-        this.remove(j12Jugadores);
+    public void prepareElementsGameSelect2P(){
+        menuGameSelect = new GameSelect();
+        this.remove(j12);
         add(menuGameSelect);
         validate();
         repaint();
     }
 
-    public void prepareElementsBoardNormal1P(Color color1, String name1, int turnoJ1){
-        board = new Board(nJugadores, color1, name1, turnoJ1);
+    public void prepareElementsBoardNormal1P(){
+        board = new Board();
         remove(menuGameSelect);
         add(board);
+        Dimension panelSize = board.getBoard().getSize();
+        System.out.println(panelSize.width);
+        System.out.println(panelSize.height);
         validate();
         repaint();
     }
 
-    public void prepareElementsBoardNormal2P(Color color1, Color color2, String name1, String name2, int turnoJ1, int turnoJ2){
-        board = new Board(nJugadores, color1, color2, name1, name2, turnoJ1, turnoJ2);
+    public void prepareElementsBoardNormal2P(){
+        board = new Board();
         remove(menuGameSelect);
         add(board);
         validate();
@@ -165,5 +160,6 @@ public class StairsGUI extends JFrame {
     public static void main(String[] Args){
         stairsInterface = new StairsGUI();
         stairsInterface.setVisible(true);
+        stairsInterface.setExtendedState(stairsInterface.getExtendedState() | JFrame.MAXIMIZED_BOTH);
     }
 }

@@ -23,7 +23,7 @@ public class Board extends JPanel{
 
     private JPanel midPanel,titlePanel;
 
-    private int size;
+    private static final int SIZE = 10;
 
     private Color colorFondo = Color.white;
 
@@ -51,41 +51,22 @@ public class Board extends JPanel{
     /**
      * Constructor de la clase Board
      */
-    public Board(int nJugadores, Color color1, String name1, int turnoJ1){
-        this.size = 10;
-        this.color1 = color1;
-        this.name1 = name1;
 
-        casillas = new JPanel[size][size];
-        //fichas = tablero.llenaTablero(name1, "Maquina");
+    public Board(){
+        
         board = new JPanel();
-        prepareElements();
-    }
-
-    public Board(int nJugadores, Color color1, Color color2, String name1, String name2, int turnoJ1, int turnoJ2){
-        this.size = 10;
-        this.color1 = color1;
-        this.name1 = name1;
-        this.color2 = color2;
-        this.name2 = name2;
-
-        for(String key: jugadores.keySet()){
-            System.out.println(key);
-        }
-
-        casillas = new JPanel[size][size];
+        casillas = new JPanel[SIZE][SIZE];
         //fichas = tablero.llenaTablero(name1, name2);
-        board = new JPanel();
         prepareElements();
     }
 
     /**
-     * Define los parámetros del tamaño del tablero, 
+     * Define los parámetros del tamaño del tablero,
      */
     public void prepareElements(){
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setSize(screenSize.width, screenSize.height);
-        this.setLayout(new BorderLayout(size, size));
+        this.setLayout(new BorderLayout(SIZE, SIZE));
         this.setBackground(colorFondo);
         board.setBorder(BorderFactory.createMatteBorder(4,4,4,4,Color.black));
         prepareElementsBoard();
@@ -98,25 +79,48 @@ public class Board extends JPanel{
         textfield.setForeground(Color.black);
         textfield.setFont(new Font("Helvetica",Font.BOLD,20));
         textfield.setHorizontalAlignment(JLabel.CENTER);
-        textfield.setText("DAPOOS");
+        textfield.setText("Escaleras y serpientes");
         textfield.setOpaque(true);
         titlePanel = new JPanel();
         titlePanel.setLayout(new BorderLayout());
         titlePanel.setBounds(0,0,getWidth(),30);
         titlePanel.add(textfield);
         add(titlePanel,BorderLayout.NORTH);
-        board = new JPanel();
-        board.setBorder(new CompoundBorder(new EmptyBorder(3, 3, 3, 3), new TitledBorder("Board DaPOOs")));
+        board.setBorder(new CompoundBorder(new EmptyBorder(3, 3, 3, 3), new TitledBorder("Board Escaleras y Serpientes")));
         board.setLayout(new GridLayout(10, 10));
+        board.setBackground(Color.WHITE);
+        int n = 1;
         for(int i=0;i<(10);i++) {
             for (int j = 0; j < (10); j++) {
                 casillas[i][j] = new JPanel();
+                casillas[i][j].setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.black));
+                casillas[i][j].setLayout(new GridLayout(3, 3, 5, 5));
                 board.add(casillas[i][j]);
-                casillas[i][j].setFocusable(false);
-
-
+                casillas[i][j].setFocusable(true);
             }
         }
+        for (int i = casillas.length - 1; i >= 0; i--) { // Recorre las filas de la matriz de abajo hacia arriba
+            if (i % 2 != casillas.length % 2) { // Si la fila es par, imprime los elementos de izquierda a derecha
+                for (int j = 0; j < casillas[0].length; j++) {
+                    JLabel texto = new JLabel(Integer.toString(n), SwingConstants.LEFT);
+                    // Establecer la alineación del texto a la esquina superior izquierda
+                    texto.setVerticalAlignment(SwingConstants.TOP);
+                    texto.setHorizontalAlignment(SwingConstants.LEFT);
+                    casillas[i][j].add(texto);
+                    n +=1;
+                }
+            } else { // Si la fila es impar, imprime los elementos de derecha a izquierda
+                for (int j = casillas[0].length - 1; j >= 0; j--) {
+                    JLabel texto = new JLabel(Integer.toString(n), SwingConstants.LEFT);
+                    // Establecer la alineación del texto a la esquina superior izquierda
+                    texto.setVerticalAlignment(SwingConstants.TOP);
+                    texto.setHorizontalAlignment(SwingConstants.LEFT);
+                    casillas[i][j].add(texto);
+                    n +=1;
+                }
+            }
+        }
+
         add(board);
         midPanel = new JPanel();
         midPanel.setBorder(new LineBorder(colorFondo, 3));
@@ -125,7 +129,7 @@ public class Board extends JPanel{
         JPanel stats = new JPanel();
         stats.setLayout(new GridLayout(2, 1, 5, 5));
         stats.setBorder(new LineBorder(Color.LIGHT_GRAY, 3));
-        stats.setBackground(Color.LIGHT_GRAY);
+        stats.setBackground(Color.WHITE);
         JLabel textMovimientos = new JLabel("MOVIMIENTOS");
         JLabel textFichas = new JLabel("JUGADOR TURNO");
         int movimientos = 0;
@@ -166,7 +170,12 @@ public class Board extends JPanel{
 
     }
 
-
+    public JPanel getBoard(){
+        if(board == null){
+            board = new JPanel();
+        }
+        return board;
+    }
     public void prepareActionsBoard(){
         salir.addActionListener(e -> salida());
         backMainMenu.addActionListener(e -> regresarAlMenu());
@@ -189,7 +198,7 @@ public class Board extends JPanel{
         if (JOptionPane.showConfirmDialog(this.getRootPane(), "¿Desea regresar al menú? Perderá los datos de esta partida",
                 "Regresar al menú", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             this.setVisible(false);
-            StairsGUI.getGUI().setVisible(true);;
+            StairsGUI.getGUI().removeAll();
             refresh();
         }
     }
