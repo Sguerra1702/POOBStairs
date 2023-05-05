@@ -5,16 +5,9 @@ import javax.swing.*;
 import domain.*;
 
 import java.awt.*;
-import java.io.File;
-import java.net.URL;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class MainMenu extends JPanel {
-
-    //private final JPanel mainPanel;
-
-    private JPanel titlePanel;
-
     private JButton newGame, loadGame, exit;
 
     Image image;
@@ -26,7 +19,7 @@ public class MainMenu extends JPanel {
     }
 
     public void prepareElements() {
-        this.setOpaque(false);;
+        this.setOpaque(false);
         prepareElementsMenu();
     }
 
@@ -55,8 +48,8 @@ public class MainMenu extends JPanel {
     public void prepareActionsMenu() {
         newGame.addActionListener(e -> {
             try {
-                prepareElementsPlayerConfig1P();
-            } catch (StairsException ex) {
+                prepareElementsPlayerConfig2P();
+            } catch (SnakesException ex) {
                 JOptionPane.showMessageDialog(null, ex.getMessage(), "Oops", JOptionPane.WARNING_MESSAGE);
             }
         });
@@ -64,8 +57,9 @@ public class MainMenu extends JPanel {
         exit.addActionListener(e -> confirmateClose());
     }
 
-    public void prepareElementsPlayerConfig1P()throws StairsException{
-        StairsGUI.getGUI().prepareElementsPlayerConfig1P();
+    public void prepareElementsPlayerConfig2P()throws SnakesException {
+
+        SnakesGUI.getGUI().prepareElementsPlayerConfig2P();
     }
 
     public void loadGame(){

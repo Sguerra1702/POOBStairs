@@ -4,8 +4,6 @@ import domain.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.net.URL;
 import java.util.HashMap;
 
@@ -34,7 +32,7 @@ public class J12 extends JPanel{
     /**
      * Constructor para j1 vs maquina
      * @param x
-     * @throws StairsException
+     * @throws SnakesException
      */
 
     public J12(int x) {
@@ -114,12 +112,12 @@ public class J12 extends JPanel{
     /**
      * Coloca Items para j1
      * @param x
-     * @throws StairsException
+     * @throws SnakesException
      */
 
-    private  void setItem(int x) throws StairsException{
+    private  void setItem(int x) throws SnakesException {
         if (jugadores.containsKey(nombreJugador.getText()) || jugadores.containsValue(color)){
-            throw new StairsException(StairsException.NO_MISMO_NOMBRE_O_COLOR);
+            throw new SnakesException(SnakesException.NO_MISMO_NOMBRE_O_COLOR);
         }
         jugadores.put(nombreJugador.getText(), color);
         cont +=1;
@@ -142,7 +140,7 @@ public class J12 extends JPanel{
         confirm.addActionListener(e -> {
             try {
                 setItem(nJugadores);
-            } catch (StairsException ex) {
+            } catch (SnakesException ex) {
                 JOptionPane.showMessageDialog(null, ex.getMessage(), "Oops", JOptionPane.WARNING_MESSAGE);
                 reset();
             }
@@ -157,8 +155,8 @@ public class J12 extends JPanel{
         int valor = JOptionPane.showConfirmDialog(this, "Deseas volver al menú de selección de jugadores", "Advertencia",
                 JOptionPane.YES_NO_OPTION);
         if (valor == JOptionPane.YES_OPTION) {
-            StairsGUI.getGUI().getContentPane().removeAll();
-            StairsGUI.getGUI().prepareElementsMenu();
+            SnakesGUI.getGUI().getContentPane().removeAll();
+            SnakesGUI.getGUI().prepareElementsMenu();
         }
     }
 
@@ -171,12 +169,12 @@ public class J12 extends JPanel{
         int valor = JOptionPane.showConfirmDialog(this, "¿Deseas salir al escritorio?", "Advertencia",
                 JOptionPane.YES_NO_OPTION);
         if (valor == JOptionPane.YES_OPTION) {
-            StairsGUI.getGUI().getContentPane().removeAll();
-            StairsGUI.getGUI().prepareElementsMenu();
+            SnakesGUI.getGUI().getContentPane().removeAll();
+            SnakesGUI.getGUI().prepareElementsMenu();
         }
     }
     public void prepareElementsGameSelect(){
-        StairsGUI.getGUI().prepareElementsGameSelect();
+        SnakesGUI.getGUI().prepareElementsGameSelect();
     }
 
     private Image loadImage(String url){

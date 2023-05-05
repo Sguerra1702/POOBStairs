@@ -5,9 +5,9 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-public class StairsGUI extends JFrame {
+public class SnakesGUI extends JFrame {
 
-    private static StairsGUI stairsInterface;
+    private static SnakesGUI stairsInterface;
 
     private JMenu archivo, settings;
 
@@ -26,18 +26,20 @@ public class StairsGUI extends JFrame {
 
     private J12 j12;
     private int nJugadores;
-    public StairsGUI(){
+
+    public SnakesGUI() {
         prepareElements();
         prepareActions();
     }
 
-    public static StairsGUI getGUI(){
-        if (stairsInterface == null){
-            stairsInterface = new StairsGUI();
+    public static SnakesGUI getGUI() {
+        if (stairsInterface == null) {
+            stairsInterface = new SnakesGUI();
         }
         return stairsInterface;
     }
-    public void prepareElements(){
+
+    public void prepareElements() {
         setTitle("Escaleras y Serpientes");
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         setSize(screenSize.width, screenSize.height);
@@ -47,7 +49,7 @@ public class StairsGUI extends JFrame {
         menuPrincipal.setOpaque(false);
     }
 
-    public void prepareActions(){
+    public void prepareActions() {
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent ev) {
@@ -59,7 +61,7 @@ public class StairsGUI extends JFrame {
 
     }
 
-    public void prepareElementsMenu(){
+    public void prepareElementsMenu() {
         menuBar = new JMenuBar();
         archivo = new JMenu("Archivo");
         menuBar.add(archivo);
@@ -82,27 +84,28 @@ public class StairsGUI extends JFrame {
 
 
     }
-    public void prepareElementsPlayerConfig1P()throws StairsException{
-        nJugadores = Integer.parseInt(JOptionPane.showInputDialog(null, "Digita el numero de jugadores"));
-        if(nJugadores <= 0){
-            throw new StairsException(StairsException.NO_PLAYERS);
-        }
-        else {
+
+    public void prepareElementsPlayerConfig2P() throws SnakesException {
+        String[] options ={"vs. CPU", "2 Jugadores", "cancelar"};
+        var selection = JOptionPane.showOptionDialog(null, "Selecciona el modo de juego:", "Advertencia",
+                0, 3, null, options, options[0]);
+        if (selection ==0){
             this.remove(menuPrincipal);
-            add(j12 = new J12(nJugadores));
+            add(j12 = new J12(1));
             validate();
             repaint();
         }
+        else if (selection == 1) {
+            this.remove(menuPrincipal);
+            add(j12 = new J12(2));
+            validate();
+            repaint();
+        } else {
+            setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        }
     }
 
-    public void prepareElementsPlayerConfig2P(){
-        this.remove(menuPrincipal);
-        add(j12);
-        validate();
-        repaint();
-    }
-
-    public void prepareElementsGameSelect(){
+    public void prepareElementsGameSelect() {
         menuGameSelect = new GameSelect();
         this.remove(j12);
         add(menuGameSelect);
@@ -110,13 +113,6 @@ public class StairsGUI extends JFrame {
         repaint();
     }
 
-    public void prepareElementsGameSelect2P(){
-        menuGameSelect = new GameSelect();
-        this.remove(j12);
-        add(menuGameSelect);
-        validate();
-        repaint();
-    }
 
     public void prepareElementsBoardNormal1P(){
         board = new Board();
@@ -158,7 +154,7 @@ public class StairsGUI extends JFrame {
         }
     }
     public static void main(String[] Args){
-        stairsInterface = new StairsGUI();
+        stairsInterface = new SnakesGUI();
         stairsInterface.setVisible(true);
         stairsInterface.setExtendedState(stairsInterface.getExtendedState() | JFrame.MAXIMIZED_BOTH);
     }

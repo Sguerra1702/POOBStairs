@@ -40,16 +40,9 @@ public class GameSelect extends JPanel {
         setOpaque(false);
         prepareElementsGameSelect();
         prepareActionsGameSelect1P();
-        image = loadImage("https://www.gifcen.com/wp-content/uploads/2022/01/wallpaper-gif-9.gif");
+        image = loadImage("");
     }
 
-    public void prepareElements2P(){
-        setBackground(Color.black);
-        setOpaque(false);
-        prepareElementsGameSelect();
-        prepareActionsGameSelect2P();
-        image = loadImage("https://www.gifcen.com/wp-content/uploads/2022/01/wallpaper-gif-9.gif");
-    }
 
     public void prepareActionsGameSelect1P() {
         normal.addActionListener(e -> prepareElementsBoardNormal1P());
@@ -80,11 +73,11 @@ public class GameSelect extends JPanel {
     }
 
     public void prepareElementsBoardNormal1P(){
-        StairsGUI.getGUI().prepareElementsBoardNormal1P();
+        SnakesGUI.getGUI().prepareElementsBoardNormal1P();
     }
 
     public void prepareElementsBoardNormal2P(){
-        StairsGUI.getGUI().prepareElementsBoardNormal2P();
+        SnakesGUI.getGUI().prepareElementsBoardNormal2P();
     }
 
     private void confirmateClose() {

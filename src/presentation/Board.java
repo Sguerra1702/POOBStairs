@@ -2,16 +2,10 @@ package presentation;
 
 import javax.swing.*;
 import javax.swing.border.*;
-import javax.swing.event.MouseInputAdapter;
 
 
 import java.awt.*;
 import java.util.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseEvent;
 
 import domain.*;
 
@@ -197,9 +191,11 @@ public class Board extends JPanel{
     private void regresarAlMenu() {
         if (JOptionPane.showConfirmDialog(this.getRootPane(), "¿Desea regresar al menú? Perderá los datos de esta partida",
                 "Regresar al menú", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-            this.setVisible(false);
-            StairsGUI.getGUI().removeAll();
-            refresh();
+
+            SnakesGUI.getGUI().removeAll();
+            SnakesGUI.getGUI().prepareElements();
+            SnakesGUI.getGUI().revalidate();
+            SnakesGUI.getGUI().repaint();
         }
     }
 
