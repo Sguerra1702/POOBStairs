@@ -10,7 +10,7 @@ public class Dado {
     }
 
     public int diceShuffle(){
-        int number = ThreadLocalRandom.current().nextInt(1, 6 + 1);
+        int number = ThreadLocalRandom.current().nextInt(1, 6);
         return number;
     }
 }

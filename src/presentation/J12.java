@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.Random;
 
 public class J12 extends JPanel{
     /**
@@ -111,23 +112,27 @@ public class J12 extends JPanel{
 
     /**
      * Coloca Items para j1
-     * @param x
+     * @param
      * @throws SnakesException
      */
 
-    private  void setItem(int x) throws SnakesException {
+    private  void setItem() throws SnakesException {
         if (jugadores.containsKey(nombreJugador.getText()) || jugadores.containsValue(color)){
             throw new SnakesException(SnakesException.NO_MISMO_NOMBRE_O_COLOR);
         }
         jugadores.put(nombreJugador.getText(), color);
         cont +=1;
+        if(nJugadores == 1){
+            Random rand = new Random();
+            jugadores.put("Maquina", new Color(rand.nextInt(256),rand.nextInt(256),rand.nextInt(256)));
+        }
         reset();
-        validate(x);
+        validate();
     }
 
-    public void validate(int x){
-        if(cont >= x ) {
-            prepareElementsGameSelect();
+    public void validate(){
+        if(jugadores.size() == 2) {
+            prepareElementsGameConfig(jugadores);
         }
         else{
             JOptionPane.showMessageDialog(null, "Jugador " + Integer.toString(cont+1) + ", configura tu partida");
@@ -139,7 +144,7 @@ public class J12 extends JPanel{
         colorPlayer.addActionListener(e -> color = JColorChooser.showDialog(null, "Escoge el color de tu ficha", null));
         confirm.addActionListener(e -> {
             try {
-                setItem(nJugadores);
+                setItem();
             } catch (SnakesException ex) {
                 JOptionPane.showMessageDialog(null, ex.getMessage(), "Oops", JOptionPane.WARNING_MESSAGE);
                 reset();
@@ -155,8 +160,7 @@ public class J12 extends JPanel{
         int valor = JOptionPane.showConfirmDialog(this, "Deseas volver al menú de selección de jugadores", "Advertencia",
                 JOptionPane.YES_NO_OPTION);
         if (valor == JOptionPane.YES_OPTION) {
-            SnakesGUI.getGUI().getContentPane().removeAll();
-            SnakesGUI.getGUI().prepareElementsMenu();
+            SnakesGUI.getGUI().returnToMenu();
         }
     }
 
@@ -173,8 +177,8 @@ public class J12 extends JPanel{
             SnakesGUI.getGUI().prepareElementsMenu();
         }
     }
-    public void prepareElementsGameSelect(){
-        SnakesGUI.getGUI().prepareElementsGameSelect();
+    public void prepareElementsGameConfig(HashMap<String, Color> jugadores){
+        SnakesGUI.getGUI().prepareElementsGameConfig(jugadores);
     }
 
     private Image loadImage(String url){

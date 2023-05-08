@@ -2,54 +2,40 @@ package presentation;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.Timer;
 
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.*;
 
 import domain.*;
 
 public class Board extends JPanel{
 
-    private JButton salir, backMainMenu;
-
+    private JButton salir, backMainMenu, shuffleDice;
     private JPanel board;
-
-    private JPanel midPanel,titlePanel;
-
+    private JPanel midPanel,titlePanel, dicePanel;
     private static final int SIZE = 10;
-
     private Color colorFondo = Color.white;
-
-    private Color colorFicha;
 
     private JPanel[][] casillas;
 
-    private Ficha[][] fichas;
-
-    private JLabel  textfield;
-
-
-
-    private HashMap<String, Jugador> jugadores;
-
-
-    private Color color1, color2;
-
-    private String name1, name2;
-
-    private int turnoJ1, turnoJ2;
-
-    private Tablero tablero;
-    ArrayList<Ficha> fichasOP;
+    private ImageIcon[] imageIcons = new ImageIcon[6];
+    private JLabel  textfield, imageLabel;
+    private SnakesAndLadders escalerasSerpientes;
+    private HashMap<Color, Ficha> fichas;
     /**
      * Constructor de la clase Board
      */
 
-    public Board(){
-        
+    public Board(int nSerpientes, int nEscaleras, boolean hasEspeciales, int porcCasilla, int porcModif, HashMap<String, Color> jugadorColor){
         board = new JPanel();
+        fichas = new HashMap<>();
         casillas = new JPanel[SIZE][SIZE];
+        escalerasSerpientes = new SnakesAndLadders(nSerpientes, nEscaleras, hasEspeciales, porcCasilla, porcModif, jugadorColor);
         //fichas = tablero.llenaTablero(name1, name2);
         prepareElements();
     }
@@ -118,7 +104,7 @@ public class Board extends JPanel{
         add(board);
         midPanel = new JPanel();
         midPanel.setBorder(new LineBorder(colorFondo, 3));
-        midPanel.setLayout(new FlowLayout(FlowLayout.TRAILING, 4, 4));
+        midPanel.setLayout(new BorderLayout());
         midPanel.setBackground(colorFondo);
         JPanel stats = new JPanel();
         stats.setLayout(new GridLayout(2, 1, 5, 5));
@@ -136,10 +122,43 @@ public class Board extends JPanel{
         stats.add(fichasCap);
         salir = new JButton("Finalizar");
         backMainMenu = new JButton("Volver al menu principal");
-        midPanel.add(stats, BorderLayout.EAST);
-        midPanel.add(salir);
-        midPanel.add(backMainMenu);
+        midPanel.add(stats, BorderLayout.NORTH);
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(1, 2));
+        buttonPanel.add(salir);
+        buttonPanel.add(backMainMenu);
+        midPanel.add(buttonPanel, BorderLayout.SOUTH);
+        dicePanel = new JPanel();
+        dicePanel.setLayout(new BorderLayout(2, 1));
+        imageLabel = new JLabel();
+        imageLabel.setSize(512, 512);
+        shuffleDice = new JButton("Lanzar Dado");
+        String folderPath = new File("C:/Users/Santi/IdeaProjects/POOBStairs/src/resources").getAbsolutePath();
+
+        // Construir la ruta de cada imagen concatenando la ruta de la carpeta con el nombre del archivo de imagen
+        String[] imagePaths = {
+                folderPath + "/1.png",
+                folderPath + "/2.png",
+                folderPath + "/3.png",
+                folderPath + "/4.png",
+                folderPath + "/5.png",
+                folderPath + "/6.png"
+        };
+        // Cargar cada imagen en un ImageIcon y almacenarlos en el arreglo de ImageIcon
+        for (int i = 0; i < 6; i++) {
+            imageIcons[i] = new ImageIcon(imagePaths[i]);
+        }imageLabel.setIcon(imageIcons[0]);
+        dicePanel.add(imageLabel, BorderLayout.CENTER);
+        dicePanel.add(shuffleDice, BorderLayout.SOUTH);
+        midPanel.add(dicePanel, BorderLayout.CENTER);
         add(midPanel, BorderLayout.EAST);
+        for (String key : escalerasSerpientes.getJugadores().keySet()) {
+            Color tempColor = escalerasSerpientes.getJugadores().get(key).getColorficha();
+            int i = escalerasSerpientes.getJugadores().get(key).getFichaJug().getPosX();
+            int j = escalerasSerpientes.getJugadores().get(key).getFichaJug().getPosY();
+            fichas.put(tempColor, new Ficha(escalerasSerpientes.getJugadores().get(key).getColorficha(), i, j));
+            casillas[i][j].add(fichas.get(tempColor));
+        }
     }
 
     public void refresh(){
@@ -151,35 +170,56 @@ public class Board extends JPanel{
 
     }
 
-
-
-    public void move(Ficha ficha, int turno){
-
-    }
-
-    public void makeAMove(int posix, int posiy, int posfx, int posfy, ArrayList<Ficha> fichasAlt){
-
-    }
-    public void prepareActionsFicha(){
-
-    }
-
-    public JPanel getBoard(){
-        if(board == null){
-            board = new JPanel();
-        }
-        return board;
-    }
     public void prepareActionsBoard(){
         salir.addActionListener(e -> salida());
         backMainMenu.addActionListener(e -> regresarAlMenu());
+
+        shuffleDice.addActionListener(e -> {
+            int diceShuffled = escalerasSerpientes.shuffleDice();
+            System.out.println(diceShuffled);
+            // Cambiar la imagen del JLabel
+            imageLabel.setIcon(imageIcons[diceShuffled -1]);
+            int[] posToMove = escalerasSerpientes.move(diceShuffled);
+            Timer timer = new Timer(1000, e1 -> {
+                for (int i = fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()).getPosX(); i >= posToMove[0]; i--) { // Recorre las filas de la matriz de abajo hacia arriba
+                    if (i % 2 != casillas.length % 2) { // Si la fila es par, imprime los elementos de izquierda a derecha
+                        for (int j = fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()).getPosY(); j <casillas[0].length ; j++) {
+                            if (moveYAxis(posToMove, i, j)) break;
+                        }
+                    } else { // Si la fila es impar, imprime los elementos de derecha a izquierda
+                        for (int j = fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()).getPosX(); j >= 0; j--) {
+                            if (moveYAxis(posToMove, i, j)) break;
+                        }
+                    }
+                }
+                ((Timer) e1.getSource()).stop();
+            });
+            timer.start();
+        });
+
+    }
+
+    private boolean moveYAxis(int[] posToMove, int i, int j) {
+        if(j == posToMove[1]){
+            return true;
+        }
+        else{
+            casillas[i][j].remove(fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()));
+            casillas[i][j].repaint();
+            casillas[i][j+1].add(fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()));
+            casillas[i][j+1].repaint();
+        }
+        return false;
     }
 
     public void setColorFondo(Color color){
 
         this.colorFondo = color;
     }
+    public void move(int value){
 
+
+    }
     private void salida(){
         int valor = JOptionPane.showConfirmDialog(this, "Desea cerrar la aplicacion?", "Advertencia",
                 JOptionPane.YES_NO_OPTION);

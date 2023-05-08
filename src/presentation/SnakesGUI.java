@@ -4,26 +4,17 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.HashMap;
 
 public class SnakesGUI extends JFrame {
 
     private static SnakesGUI stairsInterface;
-
     private JMenu archivo, settings;
-
     private JMenuBar menuBar;
-
-    Image image;
-
     private JMenuItem load, save, start, quit, tamano, colorselect;
-
-
     private Board board;
-
     private MainMenu menuPrincipal;
-
-    private GameSelect menuGameSelect;
-
+    private GameConfiguration gameConfig;
     private J12 j12;
     private int nJugadores;
 
@@ -85,7 +76,7 @@ public class SnakesGUI extends JFrame {
 
     }
 
-    public void prepareElementsPlayerConfig2P() throws SnakesException {
+    public void prepareElementsPlayerConfig2P(){
         String[] options ={"vs. CPU", "2 Jugadores", "cancelar"};
         var selection = JOptionPane.showOptionDialog(null, "Selecciona el modo de juego:", "Advertencia",
                 0, 3, null, options, options[0]);
@@ -105,33 +96,22 @@ public class SnakesGUI extends JFrame {
         }
     }
 
-    public void prepareElementsGameSelect() {
-        menuGameSelect = new GameSelect();
+    public void prepareElementsGameConfig(HashMap<String, Color> jugadores){
         this.remove(j12);
-        add(menuGameSelect);
+        add(gameConfig = new GameConfiguration(jugadores));
         validate();
         repaint();
     }
-
-
-    public void prepareElementsBoardNormal1P(){
-        board = new Board();
-        remove(menuGameSelect);
-        add(board);
-        Dimension panelSize = board.getBoard().getSize();
-        System.out.println(panelSize.width);
-        System.out.println(panelSize.height);
-        validate();
-        repaint();
-    }
-
-    public void prepareElementsBoardNormal2P(){
-        board = new Board();
-        remove(menuGameSelect);
+    public void prepareElementsBoard(int nSerpientes, int nEscaleras, boolean hasEspeciales, int porcCasilla, int porcModif, HashMap<String, Color> jugadores) {
+        this.remove(gameConfig);
+        board = new Board(nSerpientes, nEscaleras, hasEspeciales, porcCasilla, porcModif, jugadores);
         add(board);
         validate();
         repaint();
     }
+
+
+
 
     public void prepareActionsMenu() {
         menuPrincipal.prepareActionsMenu();
@@ -144,7 +124,10 @@ public class SnakesGUI extends JFrame {
     private void prepareActionsConfiguration(){
 
     }
-
+    public void returnToMenu(){
+        removeAll();
+        add(menuPrincipal);
+    }
     private void salida() {
         if (JOptionPane.showConfirmDialog(rootPane, "Seguro que quiere salir", "Salir del sistema", JOptionPane.YES_NO_OPTION
         ) == JOptionPane.YES_OPTION) {

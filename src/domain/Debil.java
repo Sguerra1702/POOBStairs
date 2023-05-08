@@ -1,5 +1,5 @@
 package domain;
 
-public class Escalera {
+public class Debil {
     private int top, bottom;
 }
