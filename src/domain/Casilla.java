@@ -18,7 +18,7 @@ public class Casilla {
         this.posY = y;
     }
 
-    public boolean isHasSnake() {
+    public boolean hasSnake() {
         return hasSnake;
     }
 
@@ -26,7 +26,7 @@ public class Casilla {
         return hasLadder;
     }
 
-    public void setHasSnake(boolean hasASnake) {
+    public void setSnake(boolean hasASnake) {
         this.hasSnake = hasASnake;
         if(hasASnake){
             setHasLadder(false);
@@ -42,7 +42,9 @@ public class Casilla {
     public void setHasLadder(boolean hasALadder) {
         this.hasLadder = hasALadder;
     }
-
+    public void removeFicha(Ficha toRemove){
+        fichasEnCasilla.remove(toRemove);
+    }
     public int getPosX() {
         return posX;
     }

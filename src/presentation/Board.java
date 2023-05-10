@@ -21,12 +21,13 @@ public class Board extends JPanel{
     private static final int SIZE = 10;
     private Color colorFondo = Color.white;
 
-    private JPanel[][] casillas;
+    private Casilla[][] casillas;
 
     private ImageIcon[] imageIcons = new ImageIcon[6];
     private JLabel  textfield, imageLabel;
     private SnakesAndLadders escalerasSerpientes;
     private HashMap<Color, Ficha> fichas;
+    private Ficha fichaJ1, fichaJ2;
     /**
      * Constructor de la clase Board
      */
@@ -34,7 +35,7 @@ public class Board extends JPanel{
     public Board(int nSerpientes, int nEscaleras, boolean hasEspeciales, int porcCasilla, int porcModif, HashMap<String, Color> jugadorColor){
         board = new JPanel();
         fichas = new HashMap<>();
-        casillas = new JPanel[SIZE][SIZE];
+        casillas = new Casilla[SIZE][SIZE];
         escalerasSerpientes = new SnakesAndLadders(nSerpientes, nEscaleras, hasEspeciales, porcCasilla, porcModif, jugadorColor);
         //fichas = tablero.llenaTablero(name1, name2);
         prepareElements();
@@ -72,7 +73,7 @@ public class Board extends JPanel{
         int n = 1;
         for(int i=0;i<(10);i++) {
             for (int j = 0; j < (10); j++) {
-                casillas[i][j] = new JPanel();
+                casillas[i][j] = new Casilla();
                 casillas[i][j].setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.black));
                 casillas[i][j].setLayout(new GridLayout(3, 3, 5, 5));
                 board.add(casillas[i][j]);
@@ -147,7 +148,8 @@ public class Board extends JPanel{
         // Cargar cada imagen en un ImageIcon y almacenarlos en el arreglo de ImageIcon
         for (int i = 0; i < 6; i++) {
             imageIcons[i] = new ImageIcon(imagePaths[i]);
-        }imageLabel.setIcon(imageIcons[0]);
+        }
+        HashMap<String, Item> powerUps = escalerasSerpientes.getTablero().getItems();
         dicePanel.add(imageLabel, BorderLayout.CENTER);
         dicePanel.add(shuffleDice, BorderLayout.SOUTH);
         midPanel.add(dicePanel, BorderLayout.CENTER);
@@ -156,8 +158,19 @@ public class Board extends JPanel{
             Color tempColor = escalerasSerpientes.getJugadores().get(key).getColorficha();
             int i = escalerasSerpientes.getJugadores().get(key).getFichaJug().getPosX();
             int j = escalerasSerpientes.getJugadores().get(key).getFichaJug().getPosY();
-            fichas.put(tempColor, new Ficha(escalerasSerpientes.getJugadores().get(key).getColorficha(), i, j));
-            casillas[i][j].add(fichas.get(tempColor));
+            fichas.put(tempColor, new Ficha(tempColor, i, j));
+            casillas[i][j].addFicha(fichas.get(tempColor));
+        }
+        for (String key: powerUps.keySet()){
+            Item temp = powerUps.get(key);
+            if (temp.isSnake()){
+                casillas[temp.getStartCoords()[0]][temp.getStartCoords()[1]].setBackground(new Color(53,186,35));
+                casillas[temp.getEndCoords()[0]][temp.getEndCoords()[1]].setBackground(new Color(53,186,35));
+            }
+            else {
+                casillas[temp.getStartCoords()[0]][temp.getStartCoords()[1]].setBackground(new Color(186,76,0));
+                casillas[temp.getEndCoords()[0]][temp.getEndCoords()[1]].setBackground(new Color(186,76,0));
+            }
         }
     }
 
@@ -179,37 +192,22 @@ public class Board extends JPanel{
             System.out.println(diceShuffled);
             // Cambiar la imagen del JLabel
             imageLabel.setIcon(imageIcons[diceShuffled -1]);
-            int[] posToMove = escalerasSerpientes.move(diceShuffled);
-            Timer timer = new Timer(1000, e1 -> {
-                for (int i = fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()).getPosX(); i >= posToMove[0]; i--) { // Recorre las filas de la matriz de abajo hacia arriba
-                    if (i % 2 != casillas.length % 2) { // Si la fila es par, imprime los elementos de izquierda a derecha
-                        for (int j = fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()).getPosY(); j <casillas[0].length ; j++) {
-                            if (moveYAxis(posToMove, i, j)) break;
-                        }
-                    } else { // Si la fila es impar, imprime los elementos de derecha a izquierda
-                        for (int j = fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()).getPosX(); j >= 0; j--) {
-                            if (moveYAxis(posToMove, i, j)) break;
-                        }
-                    }
-                }
-                ((Timer) e1.getSource()).stop();
-            });
-            timer.start();
+            int x = fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()).getPosX();
+            int y = fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()).getPosY();
+
+            move(x, y, diceShuffled);
+
         });
 
     }
 
-    private boolean moveYAxis(int[] posToMove, int i, int j) {
-        if(j == posToMove[1]){
-            return true;
-        }
-        else{
-            casillas[i][j].remove(fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()));
-            casillas[i][j].repaint();
-            casillas[i][j+1].add(fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()));
-            casillas[i][j+1].repaint();
-        }
-        return false;
+    public void move(int x, int y, int diceShuffled){
+        casillas[x][y].removeFicha(fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()));
+        int[] newPos = escalerasSerpientes.move(diceShuffled);
+        fichas.get(escalerasSerpientes.getJugadorNotEnTurno().getColorficha()).setPosX(newPos[0]);
+        fichas.get(escalerasSerpientes.getJugadorNotEnTurno().getColorficha()).setPosY(newPos[1]);
+        casillas[newPos[0]][newPos[1]].addFicha(fichas.get(escalerasSerpientes.getJugadorNotEnTurno().getColorficha()));
+
     }
 
     public void setColorFondo(Color color){
@@ -220,6 +218,8 @@ public class Board extends JPanel{
 
 
     }
+
+
     private void salida(){
         int valor = JOptionPane.showConfirmDialog(this, "Desea cerrar la aplicacion?", "Advertencia",
                 JOptionPane.YES_NO_OPTION);

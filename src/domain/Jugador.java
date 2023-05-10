@@ -32,4 +32,8 @@ public abstract class Jugador {
     public void hasWon(){
         isWinner = true;
     }
+
+    public String getNombre() {
+        return nombre;
+    }
 }
