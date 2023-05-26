@@ -1,11 +1,12 @@
 package domain;
 
+import java.awt.*;
 import java.util.ArrayList;
 
 public class Casilla {
     private boolean hasSnake, hasLadder;
     private ArrayList<Ficha> fichasEnCasilla;
-    int numero, posX, posY;
+    private int numero, posX, posY, casillaEndItem;
 
     public Casilla(int n){
         this.numero = n;
@@ -22,11 +23,12 @@ public class Casilla {
         return hasSnake;
     }
 
-    public boolean isHasLadder() {
+    public boolean hasLadder() {
         return hasLadder;
     }
 
-    public void setSnake(boolean hasASnake) {
+    public void setItem(boolean hasASnake, int casillaFin) {
+
         this.hasSnake = hasASnake;
         if(hasASnake){
             setHasLadder(false);
@@ -34,8 +36,22 @@ public class Casilla {
         else{
             setHasLadder(true);
         }
-
+        this.casillaEndItem = casillaFin;
     }
+
+    public ArrayList<Ficha> getFichasEnCasilla() {
+        return fichasEnCasilla;
+    }
+    public Ficha getFichaEnTurno(Color color){
+        Ficha toReturn = null;
+         for(Ficha ficha: fichasEnCasilla){
+             if(ficha.getColor().equals(color)){
+                 toReturn = ficha;
+             }
+         }
+        return toReturn;
+    }
+
     public void addFicha(Ficha toAdd){
         fichasEnCasilla.add(toAdd);
     }
@@ -56,4 +72,8 @@ public class Casilla {
     public int getNumero() {
         return numero;
     }
+    public int getCasillaEndItem() {
+        return casillaEndItem;
+    }
+
 }

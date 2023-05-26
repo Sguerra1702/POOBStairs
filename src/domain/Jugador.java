@@ -1,6 +1,6 @@
 package domain;
 
-import java.util.ArrayList;
+
 import java.awt.Color;
 
 public abstract class Jugador {
@@ -10,8 +10,7 @@ public abstract class Jugador {
     private boolean isWinner;
     private int turno;
 
-    public Jugador(String name, Color color, int turnoJug){
-        this.turno = turnoJug;
+    public Jugador(String name, Color color){
         this.nombre = name;
         this.colorficha = color;
         fichaJug = new Ficha(colorficha);
@@ -35,5 +34,9 @@ public abstract class Jugador {
 
     public String getNombre() {
         return nombre;
+    }
+
+    public void setTurno(int turno) {
+        this.turno = turno;
     }
 }

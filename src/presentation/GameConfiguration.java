@@ -1,5 +1,7 @@
 package presentation;
 
+import domain.SnakesException;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
@@ -16,6 +18,7 @@ public class GameConfiguration extends JPanel {
     boolean hasEspeciales;
     public GameConfiguration(HashMap<String, Color> jugadores){
         this.jugadores = jugadores;
+        System.out.println(jugadores.size());
         prepareElements();
         prepareActions();
     }
@@ -57,7 +60,7 @@ public class GameConfiguration extends JPanel {
         configPanel.add(serpienteInput, c);
         transformText = new JLabel("Escaleras y serpientes cambiables");
         c.fill = GridBagConstraints.NONE;
-        c.weighty = 40;
+        c.weighty = 20;
         c.gridx = 0;
         c.gridy = 4;
         configPanel.add(transformText, c);
@@ -84,12 +87,13 @@ public class GameConfiguration extends JPanel {
         configPanel.add(casillaText, c);
         casillaSelect = new JComboBox<String>();
         casillaSelect.addItem("");
+        casillaSelect.addItem("0");
         casillaSelect.addItem("10");
         casillaSelect.addItem("20");
-        casillaSelect.addItem("50");
+        casillaSelect.addItem("30");
         casillaSelect.addItem("40");
+        casillaSelect.addItem("50");
         casillaSelect.addItem("60");
-        casillaSelect.addItem("70");
         c.fill = GridBagConstraints.NONE;
         c.weighty = 40;
         c.gridx = 5;
@@ -103,12 +107,13 @@ public class GameConfiguration extends JPanel {
         configPanel.add(modifText, c);
         modifSelect = new JComboBox<String>();
         modifSelect.addItem("");
+        modifSelect.addItem("0");
         modifSelect.addItem("10");
         modifSelect.addItem("20");
-        modifSelect.addItem("50");
+        modifSelect.addItem("30");
         modifSelect.addItem("40");
+        modifSelect.addItem("50");
         modifSelect.addItem("60");
-        modifSelect.addItem("70");
         c.fill = GridBagConstraints.NONE;
         c.weighty = 40;
         c.gridx = 5;
@@ -141,21 +146,38 @@ public class GameConfiguration extends JPanel {
     }
 
     public void prepareActions(){
-        confirm.addActionListener(e -> startGame());
+        confirm.addActionListener(e -> {
+            try {
+                startGame();
+            } catch (SnakesException ex) {
+                JOptionPane.showMessageDialog(null, ex.getMessage(), "Oops", JOptionPane.WARNING_MESSAGE);
+                reset();
+            }
+        });
         returnMenu.addActionListener(e -> SnakesGUI.getGUI().returnToMenu());
     }
 
-    public void startGame(){
+    public void startGame() throws SnakesException {
+        if (serpienteInput.getText().equals("") || escaleraInput.getText().equals("") || casillaSelect.getSelectedIndex() == 0 || modifSelect.getSelectedIndex() == 0){
+            throw new SnakesException(SnakesException.NULL_INFORMATION);
+        }
         nSerpientes = Integer.parseInt(serpienteInput.getText());
         nEscaleras = Integer.parseInt(escaleraInput.getText());
-        if(transformSelectYes.isSelected()){
-            hasEspeciales = true;
+        if(nSerpientes >= 10 || nEscaleras >= 10){
+            throw new SnakesException(SnakesException.DEMASIADOS_ITEMS);
         }
-        else{
-            hasEspeciales = false;
-        }
+        hasEspeciales = transformSelectYes.isSelected();
         porcCasilla = Integer.parseInt(String.valueOf(casillaSelect.getSelectedItem()));
         porcModif = Integer.parseInt(String.valueOf(modifSelect.getSelectedItem()));
         SnakesGUI.getGUI().prepareElementsBoard(nSerpientes, nEscaleras, hasEspeciales, porcCasilla, porcModif, jugadores);
+    }
+
+    public void reset(){
+        serpienteInput.setText("");
+        escaleraInput.setText("");
+        casillaSelect.setSelectedIndex(0);
+        modifSelect.setSelectedIndex(0);
+        transformSelectYes.setSelected(false);
+        transformSelectNo.setSelected(false);
     }
 }

@@ -33,7 +33,6 @@ public class J12 extends JPanel{
     /**
      * Constructor para j1 vs maquina
      * @param x
-     * @throws SnakesException
      */
 
     public J12(int x) {
@@ -117,6 +116,9 @@ public class J12 extends JPanel{
      */
 
     private  void setItem() throws SnakesException {
+        if (nombreJugador.getText().equals("") || color == null){
+            throw new SnakesException(SnakesException.NULL_INFORMATION);
+        }
         if (jugadores.containsKey(nombreJugador.getText()) || jugadores.containsValue(color)){
             throw new SnakesException(SnakesException.NO_MISMO_NOMBRE_O_COLOR);
         }
@@ -124,19 +126,19 @@ public class J12 extends JPanel{
         cont +=1;
         if(nJugadores == 1){
             Random rand = new Random();
-            jugadores.put("Maquina", new Color(rand.nextInt(256),rand.nextInt(256),rand.nextInt(256)));
+            jugadores.put("Máquina", new Color(rand.nextInt(256),rand.nextInt(256),rand.nextInt(256)));
         }
         reset();
         validate();
     }
 
     public void validate(){
+        System.out.println(jugadores.size());
         if(jugadores.size() == 2) {
             prepareElementsGameConfig(jugadores);
         }
         else{
-            JOptionPane.showMessageDialog(null, "Jugador " + Integer.toString(cont+1) + ", configura tu partida");
-
+            JOptionPane.showMessageDialog(null, "Jugador " + (cont + 1) + ", configura tu partida");
         }
     }
 

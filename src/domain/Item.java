@@ -8,14 +8,12 @@ public class Item {
     public Item(int inicio, int fin, boolean isSnake){
         this.endCoords = new int[2];
         this.isSnake = isSnake;
+        this.start = inicio;
+        this.end = fin;
         if(isSnake){
-            this.start = inicio;
-            this.end = fin;
             this.isLadder = false;
         }
         else{
-            this.start = fin;
-            this.end = inicio;
             this.isLadder = true;
         }
 

@@ -1,15 +1,17 @@
 package presentation;
 
 import javax.swing.*;
-import javax.swing.border.*;
 import javax.swing.Timer;
-
+import javax.swing.border.*;
+import javax.sound.sampled.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.*;
+import java.net.URL;
 
 import domain.*;
 
@@ -24,10 +26,14 @@ public class Board extends JPanel{
     private Casilla[][] casillas;
 
     private ImageIcon[] imageIcons = new ImageIcon[6];
-    private JLabel  textfield, imageLabel;
+    private JLabel  textfield, imageLabel, jugadorEnTurno, moves;
     private SnakesAndLadders escalerasSerpientes;
     private HashMap<Color, Ficha> fichas;
-    private Ficha fichaJ1, fichaJ2;
+    private HashMap<String, Item> powerUps;
+    private Timer timer;
+    private JFileChooser fileChooser;
+    private boolean value;
+
     /**
      * Constructor de la clase Board
      */
@@ -36,9 +42,15 @@ public class Board extends JPanel{
         board = new JPanel();
         fichas = new HashMap<>();
         casillas = new Casilla[SIZE][SIZE];
-        escalerasSerpientes = new SnakesAndLadders(nSerpientes, nEscaleras, hasEspeciales, porcCasilla, porcModif, jugadorColor);
-        //fichas = tablero.llenaTablero(name1, name2);
+        escalerasSerpientes = getSnakesAndLadders(nSerpientes, nEscaleras, hasEspeciales, porcCasilla, porcModif, jugadorColor);
         prepareElements();
+    }
+
+    private SnakesAndLadders getSnakesAndLadders(int nSerpientes, int nEscaleras, boolean hasEspeciales, int porcCasilla, int porcModif, HashMap<String, Color> jugadorColor) {
+        if(escalerasSerpientes == null){
+            escalerasSerpientes = new SnakesAndLadders(nSerpientes, nEscaleras, hasEspeciales, porcCasilla, porcModif, jugadorColor);
+        }
+        return escalerasSerpientes;
     }
 
     /**
@@ -111,16 +123,16 @@ public class Board extends JPanel{
         stats.setLayout(new GridLayout(2, 1, 5, 5));
         stats.setBorder(new LineBorder(Color.LIGHT_GRAY, 3));
         stats.setBackground(Color.WHITE);
-        JLabel textMovimientos = new JLabel("MOVIMIENTOS");
+        JLabel textMovimientos = new JLabel("Valor dado");
         JLabel textFichas = new JLabel("JUGADOR TURNO");
         int movimientos = 0;
-        JLabel moves = new JLabel(Integer.toString(movimientos));
-        String turnoJugador = "J1";
-        JLabel fichasCap = new JLabel(turnoJugador);
+        moves = new JLabel(Integer.toString(movimientos));
+        String turnoJugador = escalerasSerpientes.getJugadorEnTurno().getNombre();
+        jugadorEnTurno = new JLabel(turnoJugador);
         stats.add(textMovimientos);
         stats.add(moves);
         stats.add(textFichas);
-        stats.add(fichasCap);
+        stats.add(jugadorEnTurno);
         salir = new JButton("Finalizar");
         backMainMenu = new JButton("Volver al menu principal");
         midPanel.add(stats, BorderLayout.NORTH);
@@ -134,22 +146,19 @@ public class Board extends JPanel{
         imageLabel = new JLabel();
         imageLabel.setSize(512, 512);
         shuffleDice = new JButton("Lanzar Dado");
-        String folderPath = new File("C:/Users/Santi/IdeaProjects/POOBStairs/src/resources").getAbsolutePath();
-
+        imageLabel.setIcon(imageIcons[0]);
         // Construir la ruta de cada imagen concatenando la ruta de la carpeta con el nombre del archivo de imagen
-        String[] imagePaths = {
-                folderPath + "/1.png",
-                folderPath + "/2.png",
-                folderPath + "/3.png",
-                folderPath + "/4.png",
-                folderPath + "/5.png",
-                folderPath + "/6.png"
-        };
+
         // Cargar cada imagen en un ImageIcon y almacenarlos en el arreglo de ImageIcon
         for (int i = 0; i < 6; i++) {
-            imageIcons[i] = new ImageIcon(imagePaths[i]);
+            String imagePath = "/" + (i+1) + ".png";
+            URL imageUrl = getClass().getResource(imagePath);
+            if (imageUrl != null) {
+                imageIcons[i] = new ImageIcon(imageUrl);
+            }
         }
-        HashMap<String, Item> powerUps = escalerasSerpientes.getTablero().getItems();
+
+        powerUps = escalerasSerpientes.getTablero().getItems();
         dicePanel.add(imageLabel, BorderLayout.CENTER);
         dicePanel.add(shuffleDice, BorderLayout.SOUTH);
         midPanel.add(dicePanel, BorderLayout.CENTER);
@@ -172,6 +181,14 @@ public class Board extends JPanel{
                 casillas[temp.getEndCoords()[0]][temp.getEndCoords()[1]].setBackground(new Color(186,76,0));
             }
         }
+        HashMap<Integer, domain.Casilla> casillaHashMap = escalerasSerpientes.getTablero().getCasillas();
+        for(Integer key: casillaHashMap.keySet()){
+            if (casillaHashMap.get(key) instanceof Saltarina){
+                casillas[casillaHashMap.get(key).getPosX()][casillaHashMap.get(key).getPosY()].setBackground(Color.RED);
+            } else if (casillaHashMap.get(key) instanceof Mortal) {
+                casillas[casillaHashMap.get(key).getPosX()][casillaHashMap.get(key).getPosY()].setBackground(new Color(116, 0, 255));
+            }
+        }
     }
 
     public void refresh(){
@@ -186,39 +203,142 @@ public class Board extends JPanel{
     public void prepareActionsBoard(){
         salir.addActionListener(e -> salida());
         backMainMenu.addActionListener(e -> regresarAlMenu());
-
         shuffleDice.addActionListener(e -> {
-            int diceShuffled = escalerasSerpientes.shuffleDice();
-            System.out.println(diceShuffled);
-            // Cambiar la imagen del JLabel
-            imageLabel.setIcon(imageIcons[diceShuffled -1]);
-            int x = fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()).getPosX();
-            int y = fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()).getPosY();
-
-            move(x, y, diceShuffled);
-
+            prepareMovement();
         });
 
     }
 
+    public void prepareMovement(){
+        int diceShuffled = escalerasSerpientes.shuffleDice();
+        System.out.println(diceShuffled);
+        moves.setText(Integer.toString(diceShuffled));
+        // Cambiar la imagen del JLabel
+        imageLabel.setIcon(imageIcons[diceShuffled -1]);
+        int x = fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()).getPosX();
+        int y = fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()).getPosY();
+        move(x, y, diceShuffled);
+    }
     public void move(int x, int y, int diceShuffled){
         casillas[x][y].removeFicha(fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()));
         int[] newPos = escalerasSerpientes.move(diceShuffled);
-        fichas.get(escalerasSerpientes.getJugadorNotEnTurno().getColorficha()).setPosX(newPos[0]);
-        fichas.get(escalerasSerpientes.getJugadorNotEnTurno().getColorficha()).setPosY(newPos[1]);
-        casillas[newPos[0]][newPos[1]].addFicha(fichas.get(escalerasSerpientes.getJugadorNotEnTurno().getColorficha()));
+        if(escalerasSerpientes.gameHasWinner()){
+            finishGame();
+        }
+        else{
+            fichas.get(escalerasSerpientes.getJugadorNotEnTurno().getColorficha()).setPosX(newPos[0]);
+            fichas.get(escalerasSerpientes.getJugadorNotEnTurno().getColorficha()).setPosY(newPos[1]);
+            casillas[newPos[0]][newPos[1]].addFicha(fichas.get(escalerasSerpientes.getJugadorNotEnTurno().getColorficha()));
+            jugadorEnTurno.setText(escalerasSerpientes.getJugadorEnTurno().getNombre());
+            if(escalerasSerpientes.getJugadorNotEnTurno().getFichaJug().isThroughSnake()){
+                playSound("/snake.wav");
+                JOptionPane panel = new JOptionPane("Caíste en una Serpiente! D:", JOptionPane.INFORMATION_MESSAGE);
+                JDialog dialog = panel.createDialog(null, "Title");
+                dialog.setModal(false);
+                dialog.setVisible(true);
+                new Timer(1000, e -> dialog.setVisible(false)).start();
+            } else if (escalerasSerpientes.getJugadorNotEnTurno().getFichaJug().isThroughLadder()) {
+                playSound("/ladder.wav");
+                JOptionPane panel = new JOptionPane("Subiste una escalera! :D", JOptionPane.INFORMATION_MESSAGE);
+                JDialog dialog = panel.createDialog(null, "Title");
+                dialog.setModal(false);
+                dialog.setVisible(true);
+                new Timer(1000, e -> dialog.setVisible(false)).start();
+            } else if (escalerasSerpientes.getJugadorNotEnTurno().getFichaJug().isThroughSpecial()) {
+                if(escalerasSerpientes.getJugadorNotEnTurno().getFichaJug().getTypeSpecial().equals("Saltarina")){
+                    playSound("/saltarina.wav");
+                    JOptionPane panel = new JOptionPane("Casilla Saltarina!! Qué suerte!", JOptionPane.INFORMATION_MESSAGE);
+                    JDialog dialog = panel.createDialog(null, "Title");
+                    dialog.setModal(false);
+                    dialog.setVisible(true);
+                    new Timer(1000, e -> dialog.setVisible(false)).start();
+                } else if(escalerasSerpientes.getJugadorNotEnTurno().getFichaJug().getTypeSpecial().equals("Mortal")){
+                    playSound("/mortal.wav");
+                    JOptionPane panel = new JOptionPane("Oh no, caíste en una casilla mortal :(", JOptionPane.INFORMATION_MESSAGE);
+                    JDialog dialog = panel.createDialog(null, "Title");
+                    dialog.setModal(false);
+                    dialog.setVisible(true);
+                    new Timer(1000, e -> dialog.setVisible(false)).start();
+                }
+            }
+            nextMovement();
+        }
 
     }
+    public void moveMaquina(){
+        int diceShuffled = escalerasSerpientes.shuffleDice();
+        System.out.println(diceShuffled);
+        moves.setText(Integer.toString(diceShuffled));
+        imageLabel.setIcon(imageIcons[diceShuffled -1]);
+        int x = fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()).getPosX();
+        int y = fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()).getPosY();
+        casillas[x][y].removeFicha(fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()));
+        int[] newPos = escalerasSerpientes.move(diceShuffled);
+        if(escalerasSerpientes.gameHasWinner()){
+            finishGame();
+        }
+        else{
+            fichas.get(escalerasSerpientes.getJugadorNotEnTurno().getColorficha()).setPosX(newPos[0]);
+            fichas.get(escalerasSerpientes.getJugadorNotEnTurno().getColorficha()).setPosY(newPos[1]);
+            casillas[newPos[0]][newPos[1]].addFicha(fichas.get(escalerasSerpientes.getJugadorNotEnTurno().getColorficha()));
+            jugadorEnTurno.setText(escalerasSerpientes.getJugadorEnTurno().getNombre());
+            timer.stop();
+            nextMovement();
+        }
 
-    public void setColorFondo(Color color){
-
-        this.colorFondo = color;
     }
-    public void move(int value){
-
-
+    public void nextMovement(){
+        if(escalerasSerpientes.getJugadorEnTurno().getNombre().equals("Máquina")){
+            timer = new Timer(1000, e -> moveMaquina());
+            timer.start();
+        }
+        else{
+            JOptionPane panel = new JOptionPane(escalerasSerpientes.getJugadorEnTurno().getNombre() + ", Es tu turno.", JOptionPane.INFORMATION_MESSAGE);
+            JDialog dialog = panel.createDialog(null, "Title");
+            dialog.setModal(false);
+            dialog.setVisible(true);
+            new Timer(1000, e -> dialog.setVisible(false)).start();
+        }
+    }
+    public void finishGame(){
+        shuffleDice.setEnabled(false);
+        playSound("/victory.wav");
+        JOptionPane.showMessageDialog(null, escalerasSerpientes.getGanador().getNombre() + " es el ganador!!!! Gracias por jugar :D");
+        String[] options ={"Nueva partida", "Salir"};
+        var selection = JOptionPane.showOptionDialog(null, "Deseas Iniciar una nueva partida o finalizar el juego", "Advertencia",
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        if(selection == JOptionPane.YES_OPTION){
+            SnakesGUI.getGUI().restartGame();
+        } else if (selection == JOptionPane.NO_OPTION) {
+            SnakesGUI.getGUI().finishGame();
+        }
     }
 
+
+
+    public static void playSound(String soundFilePath) {
+        try {
+            // Obtener el archivo de sonido
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(Board.class.getResource(soundFilePath));
+            AudioFormat audioFormat = audioInputStream.getFormat();
+
+            // Convertir el audio a un formato reproducible
+            DataLine.Info info = new DataLine.Info(Clip.class, audioFormat);
+            Clip clip = (Clip) AudioSystem.getLine(info);
+            clip.open(audioInputStream);
+
+            // Reproducir el sonido
+            clip.start();
+
+            // Esperar hasta que el sonido termine de reproducirse
+            Thread.sleep(clip.getMicrosecondLength() / 1000);
+
+            // Cerrar el clip de sonido
+            clip.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     private void salida(){
         int valor = JOptionPane.showConfirmDialog(this, "Desea cerrar la aplicacion?", "Advertencia",
@@ -227,6 +347,7 @@ public class Board extends JPanel{
             System.exit(0);
         }
     }
+
 
     private void regresarAlMenu() {
         if (JOptionPane.showConfirmDialog(this.getRootPane(), "¿Desea regresar al menú? Perderá los datos de esta partida",
@@ -238,6 +359,35 @@ public class Board extends JPanel{
             SnakesGUI.getGUI().repaint();
         }
     }
+    
+    public void save() throws SnakesException {
+        fileChooser = new JFileChooser();
+        fileChooser.setVisible(true );
+        fileChooser.setFileFilter( new FileNameExtensionFilter(".dat","dat"));
+        int answ = fileChooser.showSaveDialog(this);
+        if(escalerasSerpientes != null){
 
+            value=true;
+        }
+        if( answ == JFileChooser.APPROVE_OPTION){
+            if (value){
+                File file = fileChooser.getSelectedFile();
+                escalerasSerpientes.save(file) ;
+            }
+            else{
+                throw new SnakesException("Primero debe existir alguna partida creada");
+            }
+        }
+    }
+    public void abrir() throws SnakesException {
+        fileChooser = new JFileChooser();
+        fileChooser.setVisible(true );
+        fileChooser.setFileFilter( new FileNameExtensionFilter("Extension archivo .dat","dat"));
+        int answ = fileChooser.showOpenDialog(this);
+        if( answ == fileChooser.APPROVE_OPTION){
+            this.escalerasSerpientes = escalerasSerpientes.open(fileChooser.getSelectedFile());
+            prepareElements();
+        }
+    }
 }
 

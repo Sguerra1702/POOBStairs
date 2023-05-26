@@ -9,6 +9,7 @@ public class Ficha extends JButton {
         super();
         this.posX = x;
         this.posY = y;
+        setSize(new Dimension(50, 50));
         setBackground(colorFicha);
         setEnabled(false);
     }
@@ -28,4 +29,6 @@ public class Ficha extends JButton {
     public int getPosY() {
         return posY;
     }
+
+
 }

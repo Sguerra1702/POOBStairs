@@ -4,8 +4,8 @@ import java.awt.*;
 
 public class Maquina extends Jugador{
 
-    public Maquina(String name, Color color, int turno) {
-        super(name, color, turno);
+    public Maquina(String name, Color color) {
+        super(name, color);
     }
 
 }

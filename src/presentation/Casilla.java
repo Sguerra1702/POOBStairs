@@ -6,6 +6,7 @@ import java.util.ArrayList;
 public class Casilla extends JPanel {
     private ArrayList<Ficha> fichasEnCasilla;
 
+
     public Casilla(){
         fichasEnCasilla = new ArrayList<>();
     }
