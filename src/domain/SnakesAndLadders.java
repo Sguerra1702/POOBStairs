@@ -8,25 +8,24 @@ import java.util.HashMap;
 
 public class SnakesAndLadders {
     private static Tablero tablero;
-    private HashMap<String, Jugador> jugadores;
+    private static HashMap<String, Jugador> jugadores;
     private Jugador ganador;
     private Dado dado;
-    private int turno;
+    private static int turno;
     private boolean hasWinner;
 
     /**
      * Constructor de objetos tipo SnakesAndLadders
      *
-     * @param nSerpientes numero de Serpientes
-     * @param nEscaleras número de Escaleras
+     * @param nSerpientes   numero de Serpientes
+     * @param nEscaleras    número de Escaleras
      * @param hasEspeciales Define si las escaleras o serpientes cambian
-     * @param porcCasilla Porcentaje de casillas Especiales
-     * @param porcModif Porcentaje de probabilidad de modificador de valor
-     * @param infoJugador información de los jugadores
+     * @param porcCasilla   Porcentaje de casillas Especiales
+     * @param infoJugador   información de los jugadores
      */
-    public SnakesAndLadders(int nSerpientes, int nEscaleras, boolean hasEspeciales, int porcCasilla, int porcModif, HashMap<String, Color> infoJugador) {
+    public SnakesAndLadders(int nSerpientes, int nEscaleras, boolean hasEspeciales, int porcCasilla, HashMap<String, Color> infoJugador) {
         jugadores = new HashMap<>();
-        startGame(nSerpientes, nEscaleras,hasEspeciales, porcCasilla, porcModif, infoJugador);
+        startGame(nSerpientes, nEscaleras,hasEspeciales, porcCasilla, infoJugador);
         dado = new Dado();
         for (String key : jugadores.keySet()) {
             tablero.putFichaAtStart(jugadores.get(key).getFichaJug());
@@ -37,15 +36,13 @@ public class SnakesAndLadders {
     /**
      * Inicia el juego
      *
-     *
-     * @param nSerpientes numero de Serpientes
-     * @param nEscaleras número de Escaleras
+     * @param nSerpientes   numero de Serpientes
+     * @param nEscaleras    número de Escaleras
      * @param areChangeable Define si las escaleras o serpientes cambian
-     * @param porcCasilla Porcentaje de casillas Especiales
-     * @param porcModif Porcentaje de probabilidad de modificador de valor
-     * @param infoJugador información de los jugadores
+     * @param porcCasilla   Porcentaje de casillas Especiales
+     * @param infoJugador   información de los jugadores
      */
-    public void startGame(int nSerpientes, int nEscaleras, boolean areChangeable, int porcCasilla, int porcModif, HashMap<String, Color> infoJugador) {
+    public void startGame(int nSerpientes, int nEscaleras, boolean areChangeable, int porcCasilla, HashMap<String, Color> infoJugador) {
         int i = 0;
         for (String key : infoJugador.keySet()) {
             if (!key.equals("Máquina")) {
@@ -59,8 +56,8 @@ public class SnakesAndLadders {
             i +=1;
         }
         System.out.println(jugadores.size());
-        tablero = new Tablero(nSerpientes, nEscaleras,areChangeable, porcCasilla, porcModif);
-        System.out.println(getJugadorEnTurno().getNombre());
+        tablero = new Tablero(nSerpientes, nEscaleras,areChangeable, porcCasilla);
+        //System.out.println(getJugadorEnTurno().getNombre());
     }
 
     /**
@@ -69,7 +66,7 @@ public class SnakesAndLadders {
      * @return Posiciones a actualizar en la capa de presentación
      */
     public int[] move(int shuffleDice){
-        System.out.println(getJugadorEnTurno().getNombre());
+        //System.out.println(getJugadorEnTurno().getNombre());
         int[] newPositionsGUI;
         newPositionsGUI = tablero.move(shuffleDice, getJugadorEnTurno());
         if(checkIfWinner(getJugadorEnTurno())){
@@ -88,7 +85,7 @@ public class SnakesAndLadders {
      * Retorna el jugador en turno
      * @return Jugador en turno
      */
-    public Jugador getJugadorEnTurno(){
+    public static Jugador getJugadorEnTurno(){
         Jugador enTurno = null;
         for (String key : jugadores.keySet()) {
             if(jugadores.get(key).getTurno() == turno){

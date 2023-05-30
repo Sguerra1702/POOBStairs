@@ -76,4 +76,8 @@ public class Casilla {
         return casillaEndItem;
     }
 
+    public int[] getposArray(){
+        return new int[]{posX, posY};
+    }
+
 }

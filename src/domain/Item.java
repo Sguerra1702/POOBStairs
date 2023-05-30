@@ -47,4 +47,21 @@ public class Item {
     public boolean isLadder() {
         return isLadder;
     }
+
+    public void setSnake(boolean snake) {
+        isSnake = snake;
+        isLadder = !isSnake;
+    }
+
+    public void changeState(){
+        int temp = start;
+        start = end;
+        end = temp;
+        int[] temp1 = getStartCoords();
+        startCoords = endCoords;
+        endCoords = temp1;
+        if(isSnake()){
+           setSnake(false);
+        }
+    }
 }

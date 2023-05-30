@@ -7,8 +7,6 @@ import javax.sound.sampled.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.*;
 import java.net.URL;
@@ -29,10 +27,10 @@ public class Board extends JPanel{
     private JLabel  textfield, imageLabel, jugadorEnTurno, moves;
     private SnakesAndLadders escalerasSerpientes;
     private HashMap<Color, Ficha> fichas;
-    private HashMap<String, Item> powerUps;
     private Timer timer;
     private JFileChooser fileChooser;
     private boolean value;
+    private int porcModif;
 
     /**
      * Constructor de la clase Board
@@ -42,13 +40,14 @@ public class Board extends JPanel{
         board = new JPanel();
         fichas = new HashMap<>();
         casillas = new Casilla[SIZE][SIZE];
+        this.porcModif = porcModif/10;
         escalerasSerpientes = getSnakesAndLadders(nSerpientes, nEscaleras, hasEspeciales, porcCasilla, porcModif, jugadorColor);
         prepareElements();
     }
 
     private SnakesAndLadders getSnakesAndLadders(int nSerpientes, int nEscaleras, boolean hasEspeciales, int porcCasilla, int porcModif, HashMap<String, Color> jugadorColor) {
         if(escalerasSerpientes == null){
-            escalerasSerpientes = new SnakesAndLadders(nSerpientes, nEscaleras, hasEspeciales, porcCasilla, porcModif, jugadorColor);
+            escalerasSerpientes = new SnakesAndLadders(nSerpientes, nEscaleras, hasEspeciales, porcCasilla, jugadorColor);
         }
         return escalerasSerpientes;
     }
@@ -95,20 +94,12 @@ public class Board extends JPanel{
         for (int i = casillas.length - 1; i >= 0; i--) { // Recorre las filas de la matriz de abajo hacia arriba
             if (i % 2 != casillas.length % 2) { // Si la fila es par, imprime los elementos de izquierda a derecha
                 for (int j = 0; j < casillas[0].length; j++) {
-                    JLabel texto = new JLabel(Integer.toString(n), SwingConstants.LEFT);
-                    // Establecer la alineación del texto a la esquina superior izquierda
-                    texto.setVerticalAlignment(SwingConstants.TOP);
-                    texto.setHorizontalAlignment(SwingConstants.LEFT);
-                    casillas[i][j].add(texto);
+                    casillas[i][j].setText(n);
                     n +=1;
                 }
             } else { // Si la fila es impar, imprime los elementos de derecha a izquierda
                 for (int j = casillas[0].length - 1; j >= 0; j--) {
-                    JLabel texto = new JLabel(Integer.toString(n), SwingConstants.LEFT);
-                    // Establecer la alineación del texto a la esquina superior izquierda
-                    texto.setVerticalAlignment(SwingConstants.TOP);
-                    texto.setHorizontalAlignment(SwingConstants.LEFT);
-                    casillas[i][j].add(texto);
+                    casillas[i][j].setText(n);
                     n +=1;
                 }
             }
@@ -158,7 +149,7 @@ public class Board extends JPanel{
             }
         }
 
-        powerUps = escalerasSerpientes.getTablero().getItems();
+
         dicePanel.add(imageLabel, BorderLayout.CENTER);
         dicePanel.add(shuffleDice, BorderLayout.SOUTH);
         midPanel.add(dicePanel, BorderLayout.CENTER);
@@ -170,17 +161,7 @@ public class Board extends JPanel{
             fichas.put(tempColor, new Ficha(tempColor, i, j));
             casillas[i][j].addFicha(fichas.get(tempColor));
         }
-        for (String key: powerUps.keySet()){
-            Item temp = powerUps.get(key);
-            if (temp.isSnake()){
-                casillas[temp.getStartCoords()[0]][temp.getStartCoords()[1]].setBackground(new Color(53,186,35));
-                casillas[temp.getEndCoords()[0]][temp.getEndCoords()[1]].setBackground(new Color(53,186,35));
-            }
-            else {
-                casillas[temp.getStartCoords()[0]][temp.getStartCoords()[1]].setBackground(new Color(186,76,0));
-                casillas[temp.getEndCoords()[0]][temp.getEndCoords()[1]].setBackground(new Color(186,76,0));
-            }
-        }
+        paintItems();
         HashMap<Integer, domain.Casilla> casillaHashMap = escalerasSerpientes.getTablero().getCasillas();
         for(Integer key: casillaHashMap.keySet()){
             if (casillaHashMap.get(key) instanceof Saltarina){
@@ -189,6 +170,31 @@ public class Board extends JPanel{
                 casillas[casillaHashMap.get(key).getPosX()][casillaHashMap.get(key).getPosY()].setBackground(new Color(116, 0, 255));
             }
         }
+    }
+
+    private void paintItems() {
+        Random rand = new Random();
+        HashMap<String, Item> powerUps = escalerasSerpientes.getTablero().getItems();
+        for (String key: powerUps.keySet()){
+            Item temp = powerUps.get(key);
+            float r = rand.nextFloat();
+            float g = rand.nextFloat();
+            float b = rand.nextFloat();
+            if (temp.isSnake()){
+                casillas[temp.getStartCoords()[0]][temp.getStartCoords()[1]].setBackground(new Color(53,186,35));
+                casillas[temp.getStartCoords()[0]][temp.getStartCoords()[1]].setColorTexto(new Color(r, g, b));
+                casillas[temp.getEndCoords()[0]][temp.getEndCoords()[1]].setBackground(new Color(53,186,35));
+                casillas[temp.getEndCoords()[0]][temp.getEndCoords()[1]].setColorTexto(new Color(r, g, b));
+            }
+            else {
+                casillas[temp.getStartCoords()[0]][temp.getStartCoords()[1]].setBackground(new Color(186,76,0));
+                casillas[temp.getStartCoords()[0]][temp.getStartCoords()[1]].setColorTexto(new Color(r, g, b));
+                casillas[temp.getEndCoords()[0]][temp.getEndCoords()[1]].setBackground(new Color(186,76,0));
+                casillas[temp.getEndCoords()[0]][temp.getEndCoords()[1]].setColorTexto(new Color(r, g, b));
+            }
+        }
+        revalidate();
+        repaint();
     }
 
     public void refresh(){
@@ -211,7 +217,22 @@ public class Board extends JPanel{
 
     public void prepareMovement(){
         int diceShuffled = escalerasSerpientes.shuffleDice();
-        System.out.println(diceShuffled);
+        if(new Random().nextInt(1, 11) <= porcModif){
+
+            Random rand = new Random();
+            int value = rand.nextInt(1,3);
+            if(value == 1){
+                if ((JOptionPane.showConfirmDialog(null, "Modificador obtenido! Avanzarás 1 casilla más de lo que indica el dado ¿Deseas usarlo?")) == JOptionPane.YES_OPTION){
+                    diceShuffled +=1;
+                }
+            }
+            else {
+                if ((JOptionPane.showConfirmDialog(null, "Modificador obtenido! Retrocederás 1 casilla menos de lo que indica el dado ¿Deseas usarlo?")) == JOptionPane.YES_OPTION){
+                    diceShuffled -=1;
+                }
+            }
+        }
+        //System.out.println(diceShuffled);
         moves.setText(Integer.toString(diceShuffled));
         // Cambiar la imagen del JLabel
         imageLabel.setIcon(imageIcons[diceShuffled -1]);
@@ -266,8 +287,9 @@ public class Board extends JPanel{
 
     }
     public void moveMaquina(){
+        paintItems();
         int diceShuffled = escalerasSerpientes.shuffleDice();
-        System.out.println(diceShuffled);
+        //System.out.println(diceShuffled);
         moves.setText(Integer.toString(diceShuffled));
         imageLabel.setIcon(imageIcons[diceShuffled -1]);
         int x = fichas.get(escalerasSerpientes.getJugadorEnTurno().getColorficha()).getPosX();

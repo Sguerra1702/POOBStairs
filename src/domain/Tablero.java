@@ -7,22 +7,21 @@ import java.util.Random;
 public class Tablero {
     private static final int SIZE = 10;
     private Casilla[][] board;
-
+    private boolean areChangeable;
     private HashMap<Integer, Casilla> casillas;
     private HashMap<String, Item> items;
-    private double casillasEsp, modifval;
+    private double casillasEsp;
     ArrayList<Integer> itemsStart, itemsEnd, casillasMortales, casillasSaltarinas;
 
     /**
      * Constructor del tablero
      *
-     * @param nSerpientes numero de Serpientes
-     * @param nEscaleras número de Escaleras
+     * @param nSerpientes   numero de Serpientes
+     * @param nEscaleras    número de Escaleras
      * @param areChangeable Define si las escaleras o serpientes cambian
-     * @param porcCasillas Porcentaje de casillas Especiales
-     * @param porcModif Porcentaje de probabilidad de modificador de valor
+     * @param porcCasillas  Porcentaje de casillas Especiales
      */
-    public Tablero(int nSerpientes, int nEscaleras, boolean areChangeable, int porcCasillas, int porcModif){
+    public Tablero(int nSerpientes, int nEscaleras, boolean areChangeable, int porcCasillas){
         board = new Casilla[SIZE][SIZE];
         itemsStart = new ArrayList<>();
         itemsEnd = new ArrayList<>();
@@ -30,13 +29,11 @@ public class Tablero {
         casillasSaltarinas = new ArrayList<>();
         casillas = new HashMap<>();
         items = new HashMap<>();
-        modifval = (double)porcModif/100;
+        this.areChangeable = areChangeable;
         casillasEsp = (double)porcCasillas/100;
         Random rand = new Random();
         generateTablero(nSerpientes, nEscaleras, casillasEsp, rand);
-        if(areChangeable){
 
-        }
 
     }
 
@@ -131,20 +128,31 @@ public class Tablero {
         int cantEspeciales = (int) (((SIZE*SIZE) - (itemsStart.size()+itemsEnd.size()))* casillasEsp);
         ArrayList<Integer> randoms = new ArrayList<>();
         for(int i = 0; i< cantEspeciales; i++){
-            int toDelete = rand.nextInt(4, 100);
+            int toDelete = rand.nextInt(4, 90);
             while(randoms.contains(toDelete) || itemsStart.contains(toDelete) || itemsEnd.contains(toDelete)){
-                toDelete = rand.nextInt(4, 100);
+                toDelete = rand.nextInt(4, 90);
             }
             int x = casillas.get(toDelete).getPosX();
             int y = casillas.get(toDelete).getPosY();
             randoms.add(toDelete);
             casillas.remove(toDelete);
-            if(i >= cantEspeciales*0.05 ){
+            if(i <cantEspeciales*0.05){
+                casillas.put(toDelete, new Mortal(toDelete));
+                casillasMortales.add(toDelete);
+            } else if(i >= cantEspeciales*0.05 && i<cantEspeciales*0.15){
+                casillas.put(toDelete, new Avance(toDelete));
+                casillasSaltarinas.add(toDelete);
+            } else if(i >= cantEspeciales*0.15 && i<cantEspeciales*0.35){
+                casillas.put(toDelete, new Retroceso(toDelete));
+                casillasSaltarinas.add(toDelete);
+            } else if(i >= cantEspeciales*0.35 && i<cantEspeciales*0.50){
+                casillas.put(toDelete, new Preguntona(toDelete));
+                casillasSaltarinas.add(toDelete);
+            } else if(i >= cantEspeciales*0.50 && i<cantEspeciales*0.75){
                 casillas.put(toDelete, new Saltarina(toDelete));
                 casillasSaltarinas.add(toDelete);
-            }
-            else if(i <cantEspeciales*0.05){
-                casillas.put(toDelete, new Mortal(toDelete));
+            } else if(i >=cantEspeciales*0.75){
+                casillas.put(toDelete, new SaltarinaInversa(toDelete));
                 casillasMortales.add(toDelete);
             }
             board[x][y] = casillas.get(toDelete);
@@ -182,12 +190,7 @@ public class Tablero {
     private void setItem(int n, int i, int j) {
         for(String key: items.keySet()){
             if(key.split(",")[0].equals(Integer.toString(n))) {
-                if(items.get(key).isSnake()){
-                    board[i][j].setItem(true, Integer.parseInt(key.split(",")[1]));
-                }
-                else{
-                    board[i][j].setItem(false, Integer.parseInt(key.split(",")[1]));
-                }
+                board[i][j].setItem(items.get(key).isSnake(), Integer.parseInt(key.split(",")[1]));
             }
         }
     }
@@ -209,36 +212,21 @@ public class Tablero {
      * @return posiciones actualizadas de la ficha
      */
     public int[] move(int value, Jugador jugador){
+        System.out.println(jugador.getFichaJug().getPosX() +", " + jugador.getFichaJug().getPosY());
         if(!(jugador.getFichaJug().getPosX() ==0 && value > jugador.getFichaJug().getPosY())){
-            int newCasilla = 0;
-            boolean goUp = false;
             int row = jugador.getFichaJug().getPosX();
             int col = jugador.getFichaJug().getPosY();
-            for (int i = 0; i < value; i++) {
-                board[row][col].removeFicha(jugador.getFichaJug());
-                if (((col == SIZE -1 && row%2 != 0) || (col == 0 && row != SIZE-1 && row%2 == 0)) && !goUp) {
-                    row--;
-                    goUp = true;
-
-                } else {
-                    if (row % 2 != 0) {
-                        col++;
-                    } else {
-                        col--;
-                    }
-                }
-                newCasilla +=1;
-                board[row][col].addFicha(jugador.getFichaJug());
-            }
-            jugador.getFichaJug().setCasilla(jugador.getFichaJug().getCasilla() + newCasilla);
-            jugador.getFichaJug().setPosX(row);
-            jugador.getFichaJug().setPosY(col);
-            checkCasillaHasItem(row, col, jugador);
-            moveIfSpecial(row, col, jugador);
+            int newCasilla = jugador.getFichaJug().getCasilla() + value;
+            board[row][col].removeFicha(jugador.getFichaJug());
+            int[] newPos =moveUp(row, col, value);
+            board[newPos[0]][newPos[1]].addFicha(jugador.getFichaJug());
+            jugador.getFichaJug().setCasilla(newCasilla);
+            jugador.getFichaJug().setPosX(newPos[0]);
+            jugador.getFichaJug().setPosY(newPos[1]);
+            checkCasillaHasItem(newPos[0], newPos[1], jugador);
+            moveIfSpecial(newPos[0], newPos[1], jugador);
         }
-        else{
-            
-        }
+        System.out.println(jugador.getFichaJug().getPosX() +", " + jugador.getFichaJug().getPosY());
         return new int[] { jugador.getFichaJug().getPosX(), jugador.getFichaJug().getPosY() };
     }
 
@@ -252,25 +240,31 @@ public class Tablero {
     public void checkCasillaHasItem(int row, int col, Jugador jugador){
         int[] positions = null;
         boolean isSnake = false;
+        String keyToChange = null;
         for(String key: items.keySet()){
             int[] temp = items.get(key).getStartCoords();
             if(temp[0] == row && temp[1] == col){
                 positions = items.get(key).getEndCoords();
-                if(items.get(key).isSnake()){
-                    isSnake = true;
-                }
-                else{
-                    isSnake = false;
-                }
+                isSnake = items.get(key).isSnake();
+                keyToChange = key;
             }
         }
         if(positions != null){
             activateItem(jugador.getFichaJug(), positions[0], positions[1], isSnake);
+            if(areChangeable){
+                changeItem(keyToChange);
+            }
+
         }
         else{
             jugador.getFichaJug().wentThroughSnake(false);
             jugador.getFichaJug().wentThroughLadder(false);
         }
+    }
+
+    public void changeItem(String keyToChange) {
+        items.get(keyToChange).changeState();
+        System.out.println("Changed!");
     }
 
     /**
@@ -290,45 +284,45 @@ public class Tablero {
         else{
             fichaToMove.wentThroughLadder(true);
         }
+
         board[x][y].addFicha(fichaToMove);
     }
-
+    /**
+     * Mueve la ficha si cayó en una casilla especial de acuerdo al comportamiento de dicha casilla.
+     *
+     * @param row Ubicación en x de la ficha
+     * @param col Ubicación e y de la ficha
+     * @param jugador Jugador en turno
+     */
     public void moveIfSpecial(int row,int col, Jugador jugador){
-        if(casillasSaltarinas.contains(board[row][col].getNumero()) || board[row][col] instanceof Saltarina){
+        if(board[row][col] instanceof Saltarina temp){
             board[row][col].removeFicha(jugador.getFichaJug());
-            Saltarina temp = (Saltarina) board[row][col];
             int newCasilla = jugador.getFichaJug().getCasilla() + temp.getSaltos();
-            boolean goUp = false;
-            int x = jugador.getFichaJug().getPosX();
-            int y = jugador.getFichaJug().getPosY();
-            for (int i = 0; i < temp.getSaltos(); i++) {
-                if (((y == SIZE -1 && x%2 != 0) || (y == 0 && x != SIZE-1 && x%2 == 0)) && !goUp) {
-                    x--;
-                    goUp = true;
-
-                } else {
-                    if (x % 2 != 0) {
-                        y++;
-                    } else {
-                        y--;
-                    }
-                }
-                newCasilla +=1;
-            }
-            jugador.getFichaJug().setCasilla(newCasilla);
-            jugador.getFichaJug().setPosX(x);
-            jugador.getFichaJug().setPosY(y);
-            jugador.getFichaJug().wentThroughSpecial("Saltarina");
-            board[x][y].addFicha(jugador.getFichaJug());
-        } else if (casillasMortales.contains(board[row][col].getNumero())) {
-            jugador.getFichaJug().setPosX(SIZE-1);
-            jugador.getFichaJug().setPosY(0);
-            jugador.getFichaJug().wentThroughSpecial("Mortal");
-        }
-        else {
+            int[] modifiedPos = moveUp(jugador.getFichaJug().getPosX(), jugador.getFichaJug().getPosY(), temp.getSaltos());
+            setNewPosSpecial(modifiedPos[0], modifiedPos[1], newCasilla, "Saltarina", jugador);
+        } else if (board[row][col] instanceof Mortal) {
+            board[row][col].removeFicha(jugador.getFichaJug());
+            setNewPosSpecial(SIZE-1, 0, 1, "Mortal", jugador);
+        } else if (board[row][col] instanceof SaltarinaInversa temp) {
+            board[row][col].removeFicha(jugador.getFichaJug());
+            int newCasilla = jugador.getFichaJug().getCasilla() + temp.getSaltos();
+            int[] modifiedPos = moveDown(jugador.getFichaJug().getPosX(), jugador.getFichaJug().getPosY(), temp.getSaltos());
+            setNewPosSpecial(modifiedPos[0], modifiedPos[1], newCasilla, "Saltarina Inversa", jugador);
+        } else if(board[row][col] instanceof Avance temp){
+            board[row][col].removeFicha(jugador.getFichaJug());
+            int[] nearestCoords = temp.getNearestItem(items);
+            setNewPosSpecial(nearestCoords[0], nearestCoords[1],nearestCoords[2], "Avance", jugador);
+            checkCasillaHasItem(jugador.getFichaJug().getPosX(), jugador.getFichaJug().getPosY(), jugador);
+        } else if(board[row][col] instanceof Retroceso temp){
+            board[row][col].removeFicha(jugador.getFichaJug());
+            int[] nearestCoords = temp.getNearestItem(items);
+            setNewPosSpecial(nearestCoords[0], nearestCoords[1],nearestCoords[2], "Retroceso", jugador);
+            checkCasillaHasItem(jugador.getFichaJug().getPosX(), jugador.getFichaJug().getPosY(), jugador);
+        } else {
             jugador.getFichaJug().wentThroughSpecial(null);
         }
     }
+
     /**
      * Retorna los items
      *
@@ -336,6 +330,14 @@ public class Tablero {
      */
     public HashMap<String, Item> getItems() {
         return items;
+    }
+
+    public ArrayList<Integer> getItemsEnd() {
+        return itemsEnd;
+    }
+
+    public ArrayList<Integer> getItemsStart() {
+        return itemsStart;
     }
 
     public HashMap<Integer, Casilla> getCasillas() {
@@ -348,5 +350,79 @@ public class Tablero {
 
     public static int getSIZE() {
         return SIZE;
+    }
+
+    /**
+     * Mueve hacia abajo la ficha
+     *
+     * @param row Ubicación inicial de la ficha en x.
+     * @param col Ubicación inicial de la ficha en y.
+     * @param value Cantidad de veces que se va a mover la ficha
+     * @return Arreglo con las posiciones actualizadas de la ficha
+     */
+    public int[] moveDown(int row, int col, int value){
+        boolean goDown = false;
+        for (int i = value; i >0; i--) {
+            if (((col == SIZE -1 && row%2 != 0) || (col == 0 && row != SIZE-1 && row%2 == 0)) && !goDown) {
+                row++;
+                goDown = true;
+
+            } else {
+                if (row % 2 != 0) {
+                    col--;
+                } else {
+                    col++;
+                }
+            }
+        }
+        return new int[] {row, col};
+    }
+
+    /**
+     * Mueve hacia arriba la ficha
+     *
+     * @param x     Ubicación inicial de la ficha en x.
+     * @param y     Ubicación inicial de la ficha en y.
+     * @param value Cantidad de veces que se va a mover la ficha
+     * @return Arreglo con las posiciones actualizadas de la ficha
+     */
+    public int[] moveUp(int x, int y, int value){
+        boolean goUp = false;
+        for (int i = 0; i < value; i++) {
+            if (((y == SIZE -1 && x%2 != 0) || (y == 0 && x != SIZE-1 && x%2 == 0)) && !goUp) {
+                x--;
+                goUp = true;
+
+            } else {
+                if (x % 2 != 0) {
+                    y++;
+                } else {
+                    y--;
+                }
+            }
+            if(board[x][y] instanceof Preguntona temp){
+                boolean correctAnswer = temp.ask();
+                setNewPosSpecial(x, y,board[x][y].getNumero(), "Preguntona", SnakesAndLadders.getJugadorEnTurno());
+            }
+        }
+        return new int[] {x, y};
+    }
+
+
+    /**
+     * Asgina las posiciones despues de haber caído en una casilla especial.
+     *
+     * @param x Nueva posición en x
+     * @param y Nueva posición en Y
+     * @param newCasilla Nueva casilla de la ficha
+     * @param type Tipo de casilla por donde pasó la ficha
+     * @param jugador Jugador en turno
+     */
+    public void setNewPosSpecial(int x, int y, int newCasilla, String type, Jugador jugador){
+        jugador.getFichaJug().setCasilla(newCasilla);
+        jugador.getFichaJug().setPosX(x);
+        jugador.getFichaJug().setPosY(y);
+        jugador.getFichaJug().wentThroughSpecial(type);
+        board[x][y].addFicha(jugador.getFichaJug());
     }
 }

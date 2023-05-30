@@ -1,11 +1,12 @@
 package presentation;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 
 public class Casilla extends JPanel {
     private ArrayList<Ficha> fichasEnCasilla;
-
+    private JLabel texto;
 
     public Casilla(){
         fichasEnCasilla = new ArrayList<>();
@@ -34,7 +35,18 @@ public class Casilla extends JPanel {
         }
     }
 
+    public void setText(int n){
+        texto = new JLabel(Integer.toString(n), SwingConstants.LEFT);
+        // Establecer la alineación del texto a la esquina superior izquierda
+        texto.setVerticalAlignment(SwingConstants.TOP);
+        texto.setHorizontalAlignment(SwingConstants.LEFT);
+        add(texto);
+    }
     public ArrayList<Ficha> getFichasEnCasilla() {
         return fichasEnCasilla;
+    }
+
+    public void setColorTexto(Color color){
+        texto.setForeground(color);
     }
 }
